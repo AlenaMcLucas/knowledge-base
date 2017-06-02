@@ -1,0 +1,512 @@
+- SQL Introduction -
+
+Databases are systems that allow users to store and organize data. THey are usefull when dealing with large amounts of data.
+
+Spreadsheets are more appropriate for: 1) one-time analysis, 2) a quick chart, 3) reasonable data set size, and 4) ability for untrained people to work with data. Databases are more appropriate for: 1) maintaining data integrity, 2) handling massive amounts of data, 3) quickly combining different datasets, 4) automate steps for re-use, and 5) supporting data for websites and applications.
+
+SQL stands for Structured Query Language, and it's the programming language used to communicate with a dataset.
+
+Steps for Creating a Database
+
+Open and extract a .tar file using iZip, then open it using pgAdmin III. 
+
+Click on PostgreSQL [version] to see the Databases drop-down. Right-click on Databases and select "New Database...". Name it and click "Done".
+
+Steps for Restoring a Database
+
+Right-click on the new database and select "Restore..." Find the path to the .tar file, then click "Restore." Select your database and click the refresh button. To check, you should see Tables([count]) in the drop-down menu of the database. You can test this by executing an arbitrary SQL query on the database.
+
+Steps for Deleting a Database
+
+Right-click on the database and select "Delete/Drop..."
+
+- Databases and Tables -
+
+Steps for Restoring only the Table Schema (Table names and data types only, no actual data)
+
+Create a new database. Right-click on the new database and select "Restore..." Find the path to the .tar file, then under "Restore Options #1" check "Only schema" and then click "Restore." Select your database and click the refresh button. To check, you should see Tables([count]) in the drop-down menu of the database but no rows on any of the new tables.
+
+If you are restoring only the table schema for a database that already has data in it, follow the above steps but add this additional one. Under "Restore Options #2" check "Clean before restore." Refresh the database.
+
+- SQL Statement Fundamentals -
+
+General SQL Rules
+
+An asterisk (*) is the shorthand for all columns.
+
+SQL is case insensitive. By convention, we will use SQL keywords in uppercase to make the code easier to read and stand out clearly.
+
+SELECT Statement
+
+$ SELECT column1, column2,... FROM table_name;
+
+It's not good practice to use the asterisk in the SELECT statement because it will query all the data from all columns which is likely unnecessary and slows down yoru application. Specify the column names in the SELECT clause whenever possible.
+
+SELECT DISTINCT
+
+A column may contain many duplicate values and sometimes you only want to list the different (distinct, unique) values.
+
+$ SELECT DISTINCT column1, column2,... FROM table_name;
+
+WHERE Clause
+
+If you want to query particular rows based on a condition, then use SELECT with WHERE. The conditions are used to filter the rows returned from the SELECT statement
+
+$ SELECT column1, column2,... FROM table_name WHERE conditions;
+
+A condition could be:
+$ first_name = 'Jamie'
+$ first_name = 'Jamie' AND last_name = 'Rice'
+$ amount <= 1 OR amount >= 8
+
+Operator
+
+= - equal
+> - greater than
+< - less than
+>= - greater than or equal
+<= - less than or equal
+<> or != - not equal
+AND - logical operator AND
+OR - logical operator OR
+
+COUNT Statement
+
+$ SELECT COUNT(column) FROM table_name;
+
+COUNT returns the number of rows returned by a SELECT clause. You can replace column with *. It does not consider NULL values in the column.
+
+You can use COUNT with DISTINCT to count the number of distinct values in a column.
+
+$ SELECT COUNT(DISTINCT column) FROM table_name;
+OR
+$ SELECT COUNT(DISTINCT(column)) FROM table_name;
+
+LIMIT
+
+LIMIT allows you to limit the number of rows you get back after a query, which is useful when wanting to get all columns but not all rows. This always goes at the end of a query.
+
+$ SELECT * FROM column LIMIT 5;
+
+This limits the results to the first 5 rows.
+
+ORDER BY Clause
+
+When you query data from a table, PostrgreSQL returns the rows in the order that they were inserted into the table. To sort the result set in ascending or descending order based on specified criteria, use the ORDER BY clause in the SELECT statement.
+
+$ SELECT column1, column2,... FROM table_name ORDER BY column1 [ASC/DESC];
+OR
+$ SELECT column1, column2,... FROM table_name ORDER BY column1 [ASC/DESC], column2 [ASC/DESC];
+
+If you leave ORDER BY blank, it will use ASC by default.
+
+BETWEEN Statement
+
+Use the BETWEEN operator to match a value against a range of values, inclusive. Use with the WHERE clause.
+
+$ value BETWEEN low AND high;
+EQUIVALENT TO
+$ value >= low AND value <= high;
+
+To check if a value is out of a range, use the NOT BETWEEN operator.
+
+$ value NOT BETWEEN low AND high;
+EQUIVALENT TO
+$ value < low OR value > high;
+
+In application so far, we see value as a column name.
+
+IN Statement
+
+Use the IN Operator with the WHERE clause to check if a value matches any value in a list of values.
+
+$ value IN(value1, value2,...)
+EQUIVALENT TO
+$ value = value1 OR value = value2 OR...
+
+This returns true if the value matches any value in the list i.e. value1 OR value2 OR ...etc.
+
+The list of values is not limited to a list of numbers or strings but also a result set of a SELECT statemenet as shown in the following query:
+
+$ value IN(SELECT value FROM table_name)
+
+You can also use NOT with IN.
+
+$ value NOT IN(value1, value2,...)
+
+LIKE Statement
+
+Use LIKE with the WHERE clause to find pattern matches. The % character is referred as a pattern.
+
+$ value LIKE 'value1%'
+
+This returns rows whose values in the value/column begin with value1 and may be followed by any sequence of characters. LIKE is case-sensitive.
+
+Construct patterns by combining a string with wildcard characters and use the LIKE or NOT LIKE operator to find the matches. Wildcard characters are:
+ - percent (%) for matching any sequence of characters
+ - underscore (_) for matching any single character
+
+ILIKE makes the pattern in '' case-insensitive.
+
+- GROUP BY Statements -
+
+MIN MAX AVG SUM - Aggregate Functions
+
+Aggregate functions take rows of data and aggregate/combine it into a single value. COUNT is an aggregate function. All of the functions above do what you'd think and are placed after SELECT.
+
+$ SELECT ROUND(AVG(value), decimal_places) FROM table_name;
+
+Note that, when you ROUND, if the expression you are rounding ends with a 5, it will round so the last digit is an even number, i.e. ROUND(34.55, 1) -> 34.6 and ROUND(34.65, 1) -> 34.6.
+
+GROUP BY Clause
+
+The GROUP BY clause dividies the rows returned from the SELECT statement into groups. For each group, you can apply an aggregrate function.
+
+$ SELECT column1, agg_func(column2) FROM table_name GROUP BY column1;
+
+When there is no aggregrate function, it acts like a DISTICT call because it returns every unique instance of the column.
+
+Notet that you can keep adding commas and agg_func(column3)... etc to perform multiple aggregations.
+
+HAVING Clause
+
+We often use the HAVING clause in conjunction wit hthe GROUP BY clause to filter group rows that do not satisfy a specified condition.
+
+$ HAVING condtion;
+
+The HAVING clause sets the condition for group rows created by the GROUP BY clause after the GROUP BY clause applies while the WHERE clause set the condition for individual rows before GROUP BY clause applies.
+
+- JOINS -
+
+AS Statement
+
+AS allows us to rename columns or table selections with an alias.
+
+$ SELECT column AS new_name FROM table_name;
+
+Good to use with GROUP BY to rename new column created.
+
+You can actually delete the AS and just have a space. For readability it's better to keep it, but it works.
+
+JOINS
+
+Joining allows you to relate data in one table to the data in other tables.
+
+Inner Joins
+
+Keys are the same column that can link two data tables together. Use INNER JOIN caluse in the SELECT statement:
+
+$ SELECT table_name_A.column_name1, table_name_A.column_name2, table_name_B.column_name1, table_name_B.column_name2 FROM table_name_A INNER JOIN table_name_B ON table_name_A.key = table_name_B.key;
+
+On the key columns, when PostgreSQL finds a match it combines columns of both rows into one row and adds the combined row to the returned result set.
+
+The INNER JOIN clause returns rows in A table that have the corresponding rows in the B table.
+
+Note that, after the SELECT statement, it's option to specify table_name if the column only exists in one table.
+
+You can put other clauses after (ORDER BY, WHERE, etc).
+
+You don't need to write INNER JOIN. You can just write JOIN and it will perform the same operation.
+
+You can use AS like this:
+$ ...JOIN language AS lan ON lan.language_id = film.language_id;
+
+Overview of Join Types
+
+INNER JOIN produces only the set of records that match in both Table A and Table B.
+
+A FULL OUTER JOIN produces the set of all records in Table A and Table B, with matching records from both sides where available. If there is no match, the missing side will contain null.
+
+A LEFT OUTER JOIN produces a complete set of records from Table A, with the matching records where available in Table B. If there is no match, the right side will contain null.
+
+To produce the set of records only in Table A but not in Table B, we perform the same left outer join, then exclude the records we don't want from the right side via a WHERE clause. If you want to get rid of all the matches between Table A and B, write:
+$ ...WHERE TableB.column IS NULL;
+
+To only select unique records to either Table A or B, use a FULL OUTER JOIN with a WHERE clause:
+$ ...WHERE TableA.column IS NULL OR TableB.column IS NULL;
+
+Note that RIGHT JOINS follow all the same rules, just for Table B.
+
+You can right LEFT JOIN or RIGHT JOIN without specifying OUTER.
+
+Union Statement
+
+The UNION operator combines result sets of two or more SELECT statements into a single result set.
+
+$ SELECT column1, column2 FROM table_name1
+$ UNION
+$ SELECT column3, column4 FROM table_name2;
+
+There are two rules: 1) Both queries return the same number of columns, and 2) the correspodning columns in the queiries must have compatible data types.
+
+The UNION operator removes all duplicate rows unless UNION ALL is used. The UNION operator may place the rows in the first query before, after or between the rows in the result set of the second query. To sort the rows in the combined result set by a specificed column, you use the ORDER BY clause.
+
+We often use the UNION operator to combine data from similar tables that are not perfectly normalized. Those tables are oftne found in the report or data warehouse system.
+
+Remeber the sales Q1 and Q2 example.
+
+- Advanced SQL Commands -
+
+Timestamps
+
+The timestamp data type is for time information.
+
+The extract() function extracts parts from a date. The possible units are day, dow, doy, epoch, hour, hour, microseconds, millennium, milliseconds, minute, month, quarter, second, week, year. There is lots of documentation to work with timestamps, but we're just focusing on extract() for now.
+
+$ SELECT extract([unit] from column) FROM table_name;
+
+Use AS after the function to rename that new column.
+
+Mathematical Functions
+
+There are a lot more mathematical functions and operators than covered, so use the documentation as necessary. Note there are also random and trigonometric functions.
+
+Using mathematical operations will work on rspective values in each column.
+
+$ SELECT price+tax AS total_cost FROM table_name;
+
+Note that division truncates when dividing two integers.
+
+String Functions and Operators
+
+Again, if you're looking for more info consult the documentation. Typical operations are concatention ||, char_length(), lower(), position(), substring(), trim(), upper(), etc. There is a whole subset of SQL documentation to explore regular expressions if LIKE is not complex enough.
+
+SubQuery
+
+A subquery allows us to use multiple SELECT statements where a query is in a query.
+
+To construct a subquery, put the second query in parenthesis and use it in the WHERE clause as an expression. The subquery is executed first and passed to the outer query.
+
+$ SELECT column1, column2, rental_rate FROM table_name WHERE rental_rate > (SELECT AVG(rental_rate) FROM film);
+
+Self Join
+
+Use self join when you want to combine rows with other rows in the same table. To perform the self join operation, you must use a table aliad to help SQL distinguish the left table from the right table of the same table.
+
+As a general rule, we need to always use aliases (using the AS statement) when using a self join.
+
+$ SELECT a.first_name,a.last_name,b.first_name,b.last_name
+$ FROM customer AS a, customer AS b
+$ WHERE a.first_name = b.last_name;
+
+Generally, queries that refer to the same table can be greatly simplified by re-writing the queries as self joins. There is a performance benefit as well.
+
+Technically, you can do the same thing with the following code:
+
+$ SELECT a.first_name,a.last_name,b.first_name,b.last_name
+$ FROM customer AS a
+$ JOIN customer AS b
+$ ON a.first_name = b.last_name;
+
+With this, you can specify LEFT JOIN or RIGHT JOIN (outer). Without this specification, they are INNER JOIN.
+
+- Creating Databases and Tables -
+
+Data Types
+
+PostgreSQL supports boolean, character, number, temporal, special types and arrays.
+
+A boolean can hold either true or false. If a value is not known, it is null. You can use boolean or bool when you declare a column. When you insert data into a boolean column, PostgreSQL will convert it into the boolean value i.e. 1, yes, y,t and true are converted to true, and 0, no, n, false, and f are converted to false. When you SELECT data from a boolean column, PostgreSQL displays t for true, f for false, and a space character for null.
+
+A character (char) is a a single character. Fixed-length character strings: char(n). If you insert a string that is shorter than the length of the column, PostgreSQL will pad spaces. If you insert a string that is longer than the length of the column, PostgreSQL will issue an error. Variable-length character strings: varchar(n). You can store up to n characters with variable-lenth character strings. PostgreSQL does not pad spaces when the stores string is shorter than the length of the column.
+
+Small integer (smallint) is 2-byte signed integer that has a range of (-32768,32767). Integer (int) is 4-byte integer that has a range of (-214783648,214783647). Serial is the same as integer except that PostgreSQL populates value into the column automatically.
+
+float(n) is a floating-point number whose precision is n up to a maximum of 8 bytes. real or float8 is a double precision (8-byte) floating-point number. numeric or numeric(p,s) is a real number with p digits with s number after the decimal point. The numeric(p,) is the exact number.
+
+The temporal data types store date and time-related data.
+ - date stores date data
+ - time stores time data
+ - timestamp stores date and time
+ - interval sotres the difference in timestamps
+ - timestamptz store both timestamp and tiemzone data
+
+Primary Keys and Foreign Keys
+
+A primary key is a column or a group of columns that is used to identify a row uniquely in a table. You define primary keys through primary key constraints.
+
+A table can have one and only one primary key. It is a good practice to add a primary key to every table. When you add a primary key to a table, PostgreSQL creates a unique index on the column or a group of columns used to define the primary key.
+
+Normally, we add the primary key to a table when we define the table's structure using CREATE TABLE statement:
+$ CREATE TABLE table_name(column data_type PRIMARY KEY, column2 data_type,...);
+
+A foreign key is a field or group of fields in a table that uniquely identifies a row in another table. In other words, a foreign key is defined in a table that refers to the primary key of the other table. The table that contains the foreign key is called referencing table or child table. And the table to which the foreign key references is called referenced table or parent table. A table can have multiple foreign keys depending on its relationships with other tables.
+
+In PostgreSQL, you define a foreign key through a foreign key constraint. A foreign key constraint indicates that values in a column or a group of columns in the child table match with the values in a column or a group of columns of the parent table. We say that a foreign key constrant maintains referential integrity between child and parent tables. We say that a foreign key constraint maintains referential integrity between child and parent tables.
+
+Creating a Table
+
+Use the CREATE TABLE statement:
+$ CREATE TABLE table_name(column_name1 data_type1 column_constrait1, column_name2 data_type2 column_constrait2, table_constraint) INHERITS existing_table_name;
+
+The new table contains all columns of the existing table and the columns defined in the CREATE TABLE statement.
+
+PostgreSQL column constrains are:
+ - NOT NULL: the value of the column cannot be NULL
+ - UNIQUE: the value of the column must be unique across the whole table
+Note that the column can have many NULL values. Notice that SQL standards only allow for one NULL value in the column that has the UNIQUE constraint.
+ - PRIMARY KEY: combination of NOT NULL and UNIQUE, this is how you declare the primary key column
+ If the primary key contains multiple columns you must use the table-level constraint.
+ - CHECK: enables to check a condition when you insert or update data, i.e. for a price column the values must be positive
+ - REFERENCES: constrains the value of the column that exists in a column in another table 
+
+PostgreSQL table constraints are:
+ - UNIQUE(column_list): force the value stored in the columns listed to be unique
+ - PRIMARY KEY(column_list): define the primary key that consists of multiple columns, ie. (column1, column2)
+ - CHECK(condition): to check a condition when inserting or updating data
+ - REFERENCES: constrain the value stored in the column that must exist in a column in another table
+ - FOREIGN KEY:
+$ ...CONSTRAINT column_name1 FOREIGN KEY(column_name)
+$  TABLE_CONSTRAINT table_name(column_name)...
+
+CREATE TABLE account(
+user_id serial PRIMARY KEY,
+username VARCHAR (50) UNIQUE NOT NULL,
+password VARCHAR (50) NOT NULL,
+email VARCHAR (355) UNIQUE NOT NULL,
+created_on TIMESTAMP NOT NULL,
+last_login TIMESTAMP
+);
+
+CREATE TABLE role(
+role_id serial PRIMARY KEY,
+role_name VARCHAR (255) UNIQUE NOT NULL
+);
+
+CREATE TABLE account_role
+(
+  user_id integer NOT NULL,
+  role_id integer NOT NULL,
+  grant_date timestamp without time zone,
+  PRIMARY KEY (user_id, role_id),
+  CONSTRAINT account_role_role_id_fkey FOREIGN KEY (role_id)
+      REFERENCES role (role_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT account_role_user_id_fkey FOREIGN KEY (user_id)
+      REFERENCES account (user_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+
+CREATE TABLE customer(
+  user_id serial PRIMARY KEY,
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  sign_up_ts TIMESTAMP NOT NULL,
+  minutes_on_site integer
+);
+
+Insert
+
+If you create a new table, the first thing you often do is to insert new rows into the table. SQL provides the INSERT statement that allows you to insert one or more rows into a table at a time.
+
+$ INSERT INTO table(column1,column2,...) VALUES(value1,value2,...), (value3,value4,...),...;
+
+To insert data that comes from abother table, use the INSERT INTO SELECT statement.
+
+$ INSERT INTO table_name SELECT column1, column2,... FROM another_table WHERE condition;
+
+How to dupicate a table:
+$ CREATE TABLE table_name_copy(LIKE table_name);
+
+$ INSERT INTO table_name_copy SELECT * FROM table_name;
+To only duplicate some of the rows, add a WHERE clause.
+
+Update
+
+Update data with:
+$ UPDATE table_name SET column1 = value1, column2 = value2,... WHERE condition;
+
+This updates the whole column. Use the WHERE clause to specify rows. Note if you set a column's value to another column, it will copy each value from the other column into the new one.
+
+Add RETURNING column1,column2,... to the end to see those columns affectd by the WHERE clause in the data output. You can also specify * for all columns affected.
+
+Delete
+
+To delete rows in a table, use the DELETE statement.
+
+$ DELETE FROM table_name WHERE condition;
+
+If the WHERE clause is omitted, all rows in the table are deleted.
+
+The DELETE statement returns the number of rows deleted. If no rows are delted, the DELETE statement returns zero.
+
+Alter Table
+
+To change the existing table structure, use the ALTER TABLE statement.
+
+$ ALTER TABLE table_name action;
+
+PostgreSQL provides many actions that allow you to:
+ - add, remove, or rename column
+ - set default value for the column
+ - add CHECK constraint to a column
+ - rename table
+
+$ DROP TABLE IF EXISTS table_name;
+
+$ ALTER TABLE table_name ADD COLUMN column_name data_type;
+
+$ ALTER TABLE table_name DROP COLUMN column_name;
+
+$ ALTER TABLE table_name RENAME COLUMN column_name TO new_column_name;
+
+$ ALTER TABLE table_name RENAME TO new_table_name;
+
+Drop Table
+
+To remove an existing table from the database, use the DROP TABLE statement.
+
+$ DROP TABLE [IF EXISTS] table_name;
+
+IF EXISTS is an optional statement to avoid errors if a table doesn't exist.
+
+You can write RESTRICT to refuse to drop the table if any objects are dependent on it. This is the default. If you want to remove dependent objects, write CASCADE.
+
+CHECK Constraint
+
+A CHECK constraint is a kind of constraint that allows you to specify if a value in a column must meet a specific requirement. The CHECK constraint uses a boolean expression to evaluate the values of a column. If the values of the column pass the check, PostgreSQL will insert or update those values.
+
+CREATE TABLE new_users(
+id serial PRIMARY KEY,
+first_name VARCHAR(50),
+birth_date DATE CHECK(birth_date > '1900-01-01'),
+join_date DATE CHECK(join_date > birth_date),
+salary integer CHECK(salary > 0)
+);
+
+$ INSERT INTO new_users(first_name,birth_date,join_date,salary)
+$ VALUES('Joe','1980-02-02','1990-04-04',-10);
+
+The violated check constraint is 'new_users_salary_check,' but you can rename it by using the CONSTRAINT keyword:
+$ ...salary integer CONSTRAINT salary_not_positive CHECK(salary > 0)
+
+NOT NULL Constraint
+
+NULL is unknown or missing information, which is different from empty (empty string) or zero.
+
+PostgreSQL provides the NOT NULL constraint to enforce a column must not accept NULL values.
+
+UNIQUE Constraint
+
+Every time you insert a new row or update an existing row with the UNIQUE constraint, PostgreSQL checks if the value is already in the column.
+
+- Extra Material -
+
+Views
+
+A view is a database object that is of a stored query. A view can be accessible as a virtual table in PostgreSQL. In other words, PostgreSQL view is a logical table that represents data of one or more underlying tables through a SELECT statement.
+
+A view does not store data physically.
+
+A view helps simplify the complexity of a query because you can query a view, which is based on a complex query, using a simple SELECT statement. Like a table, you can grant permission to users through a view that contains specific data that the users are authorized to see. A view provides a consistent layer even the columns of underlying table changes.
+
+$ CREATE VIEW view_name AS query;
+
+The query is a SELECT statement in parentheses.
+
+Then, you can query the view as you query a table. Instead of ALTER TABLE, use ALTER VIEW. Likewise, use DROP VIEW.
+
+Python and PostgreSQL
+
+Note that you can use python with PostgreSQL using the pyscopg2 library.
