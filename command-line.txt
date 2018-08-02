@@ -1,0 +1,45 @@
+Command Line
+
+$ pwd
+$ ls (or dir)
+$ man ls   // tells you what ls can do, q to quit
+$ clear   // clears the screen
+$ cd ../..
+$ cd ~/Desktop   // ~ means home folder, varies
+
+$ mkdir [new_directory]   // makes a directory
+$ touch [new_file].txt   // creates new text file
+$ echo "Potato Head to the rescue!" >> [file_name].txt   // saves that string to the file
+$ mv [fine_name] [new_file_path/file_name]
+$ echo "Blah blah blah" >> [new_file_path/file_name]   // appends another string to the file
+
+$ cat [file_one] [file_two]   // prints both files one after another on a newline
+$ cat [file_one] [file_two] > [file_three]   // save both files one after another in new file
+$ cat [file_three] > [file_two]   // overwrites contents of file_two with file_three
+$ cp [file_one] [new_file]   // copy file_one to a new file
+
+$ find -name "*data*"   // looks recursively in current directory and everything below it, uses regex
+$ find file_path -name "*data*"   // can include a file path as well and many other parameters
+$ grep "Hello" file_path/my_file.txt will search the specific file for "Hello"
+$ grep "Hello" file_path/* will search all files in file path for "Hello"
+$ grep -r "Hello" .   // will search all files recursively in and below file path for "Hello"
+$ grep -r "Hello" file_* will search all files that are in directories that start with test_ for "Hello"
+
+BE CAREFUL WHEN RUNNING THIS CODE BECAUSE CHANGES ARE IRREVERSIBLE
+$ rm file_path/file_name
+$ rm file_path/*   // delete anything in this file path
+- rm only works on files, not directories
+$ rmdir file_path
+- will nonly delete directory that is empty
+
+$ ls | grep "test"   // | pipe passes output from one command to another, so results of grep for "test" will be listed
+$ echo "Does this contain a ?" | grep -o "?"
+?   // grep returns matching character "?" if string echoed contains "?"
+$ grep "echo" < file_path/file_name   // pipes file into the grep, returns that file was created with echo
+
+- can define functions at the command line
+
+Python-Specific
+
+$ python   // starts interactive mode
+$ quit()   // quites interactive mode
