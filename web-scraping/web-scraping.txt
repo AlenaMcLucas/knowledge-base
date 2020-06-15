@@ -1,0 +1,149 @@
+
+$ scrapy startproject [project_name]
+
+root directory contains [project_name].cfg file (configuration file)
+
+$ scrapy genspider [spider_name] [domain/url without http://]
+
+creates [spider_name].py in spiders folder
+
+$ scrapy list
+
+lists all generated spiders
+
+$ scrapy shell
+
+to open interactive scraping console
+
+> fetch("full url")
+
+opens spider
+404 if not fount, 301 redirected, 200 or 300 successful
+
+> response
+
+shows response and url
+
+> response.css('h1')
+
+selects h1 tag
+
+> response.xpath('//h1/a/text()')
+
+Out[4]: [<Selector xpath='//h1/a/text()' data='Quotes to Scrape'>]
+
+double // or *? = find every instance of this
+
+> response.xpath('//h1/a/text()').extract()
+
+Out[5]: ['Quotes to Scrape']
+
+> response.xpath('//*[@class="tag-item"]/a/text()').extract()
+
+[@class="class_name"] to isolate by class
+
+> ctrl-d
+
+quit interactive scrapy shell
+
+
+spider name must be unique in project
+allowed domains, will not process others
+start_urls is first url scrapy will process
+parse is default callback method, called when not explcitly defined callback
+
+
+to save/return responses/text:
+
+in quotes.py file:
+
+def parse(self, response):
+	h1_tag = response.xpath('//h1/a/text()').extract_first()
+	tags = response.xpath('//*[@class="tag-item"]/a/text()').extract()
+
+	yield {'H1 Tag': h1_tag, 'Tags': tags}
+
+
+$ scrapy crawl quotes
+
+runs spider, pay attention to this portion:
+2020-03-16 18:30:21 [scrapy.core.engine] INFO: Spider opened
+2020-03-16 18:30:21 [scrapy.extensions.logstats] INFO: Crawled 0 pages (at 0 pages/min), scraped 0 items (at 0 items/min)
+2020-03-16 18:30:21 [scrapy.extensions.telnet] INFO: Telnet console listening on 127.0.0.1:6023
+2020-03-16 18:30:21 [scrapy.core.engine] DEBUG: Crawled (404) <GET http://quotes.toscrape.com/robots.txt> (referer: None)
+2020-03-16 18:30:22 [scrapy.core.engine] DEBUG: Crawled (200) <GET http://quotes.toscrape.com/> (referer: None)
+2020-03-16 18:30:22 [scrapy.core.scraper] DEBUG: Scraped from <200 http://quotes.toscrape.com/>
+{'H1 Tag': 'Quotes to Scrape', 'Tags': ['love', 'inspirational', 'life', 'humor', 'books', 'reading', 'friendship', 'friends', 'truth', 'simile']}
+2020-03-16 18:30:22 [scrapy.core.engine] INFO: Closing spider (finished)
+
+
+Notice robots.txt received 404 response because doesn't exist, so to exclude go to settings.py and change this to False
+
+# Obey robots.txt rules
+ROBOTSTXT_OBEY = True
+
+
+stats below the attention portion let us check responses, items scraped, start + finish time, etc
+
+
+xpath is more flexible way to select code beyond just html like php, javascript, c++, python, etc
+
+
+
+.xpath('/html/head/title')
+
+accepts location path, steps separated by slashes
+
+select all nodes is double slashes
+
+.extract() means extract just the data
+
+
+.xpath('//p[2]').extract()
+
+[2] selects the second p element (xpath is 1-indexed)
+
+.xpath('//p[2]')[1].extract()
+
+[0] here is in python so selects the first p element (python is 0-indexed)
+
+
+.xpath('//h2/a/@href').extract()
+
+selects link in a tag
+
+can also use .css() selector
+
+In inspector, you can select a tag > Copy > Copy XPath
+
+XPath Helper Chrome extension > https://chrome.google.com/webstore/detail/xpath-helper/hgimnogjllphhhkhlmebbmlgjoejdpjl
+
+XPath Tester > https://www.freeformatter.com/xpath-tester.html
+
+
+
+.xpath('.//*[@attribute="attribute_value"]/text()').extract()
+
+not just for class, but any attribute
+
+
+response.urljoin(next_page_url)
+
+stores absolute url (includes http://domain.com/uri)
+
+
+yield scrapy.Request(absolute_next_page_url)
+
+goes to that page and repeats
+
+
+$ scrapy crawl quotes -o items.csv/.json/.xml
+
+creates csv/json/xml file of output in project folder
+
+
+
+
+
+
+
