@@ -118,3 +118,73 @@ df = spark.sql("SELECT square('numericField') FROM tableName")
 	- They can be used for map functions, UDFs, dictionaries, or whatever
 - Breadth-First-Search algorithm searched through graph and calculates degrees of separation. Select beginning node, it's 0 degrees. Then go to all of its connections and add 1. Repeat until all degrees of separation have been calculated for each node.
 - An accumulator allows many executors to increment a shared variable.
+- Anytime you perform more than one action on a dataframe, you should cache it. Otherwise, Spark might re-evaluate the entire dataframe again.
+	- `.cache()` caches it in memory, `.persist()` caches it to disk (recovers better if node fails, but takes longer)
+- In this line `spark = SparkSession.builder.appName("MovieSimilarities").master("local[*]").getOrCreate()`, `"local[*]"` indicates to use all CPU cores to run this job. Be careful, in a cluster this could use all CPUs available.
+
+# Running Spark on a Cluster
+
+- AWS Elastic MapReduce (EMR)
+	- Sets up a default Spark configuarion for you on top of Hadoop's YARN cluster manager
+	- Spark also has a built-in standalone cluster manager and scripts to set up its own EC2-based cluster, but the AWS console is even easier
+	- By default, AWS MapReduce uses m3.xlarge instances which can be a bit expensive
+	- Remember to shut down your cluster when you're done
+
+## Optimizing for Running on a Cluster: Partitions
+
+- Use `.partitionBy()` on an RDD before running a large operation that benefits from partitioning
+	- Those operations include: `.join()`, `.join()`, `.groupWith()`, `.leftOuterJoin()`, `.rightOuterJoin()`, `.groupByKey()`, `.reduceByKey()`, `.combineByKey()`, `.lookup()`
+	- Those operations will preserve your partitioning in their result too
+- Too few partitions won't take full advantage of your cluster
+- Too many results in too much overhead from shuffling data
+- You should have at least as many partitions as you have cores, or executors, that fit within your available memory
+- `.partitionBy(100)` is usually a reasonable place to start for large operations
+
+## Troubleshooting & Managing Dependencies
+
+- `localhost:4040` will show you DAGs, logs (if in standalone mode, if distributed you can collect them with `yarn logs -applicationID <appID>`), tasks to help troubleshoot when needed
+- While your driver script runs, it will log errors like executors failing to issue heartbeats
+	- This generally means you're asking too much of each executor, so you may need more of them or they may need more memory
+	- Or, use `.partitionBy()` to demand less work form individual executors by using smaller partitions
+- Remember your executors aren't necessarily on the same box as your driver script
+- Use broadcast variables to shakre data outside of RDDs
+- Need a python package that's not pre-loaded on EMR?
+	- Set up a step in EMR to run pip for what you need on each worker machine
+	- Or use -py-files with spark-submit to add individual libraries that are on the master
+	- Try to just avoid using obscure packages you don't need in the first place. Time is money on your cluster, and you're better off not fiddling with it.
+
+# Machine Learning with Spark ML
+
+- ML capabilities:
+	- Feature extraction (i.e. tf-idf, etc)
+	- Basic statistics
+		- Chi-squared test, Pearson or Spearman correlation, min, max, mean, variance
+	- Linear regression, logistic regression
+	- Support Vector Machines
+	- Naive Bayes classifier
+	- Decision trees
+	- K-Means clustering
+	- PCA, SVD
+	- Recommendations using Alternating Least Squares
+- Previous API was called MLLib and used RDDs and some specialized data structures, but is deprecated in Spark 3
+- The newer ML library uses dataframes for everything
+- For more depth, read "Advanced Analytics with Spark" from O'Reilly
+
+## Linear Regression with Spark ML
+
+- Train the model and make predictions using tuples taht consist of a label and a vector of features.
+- Stochastic Gradient Descent doesn't handle features at different scales well, so you will need to scale it
+- You need to call `fitIntercept(true)` to not assume the y-intercept is 0
+
+
+## Notes
+
+- Putting your faith in a black box is dodgy
+- Never blindly trust results when analyzing big data
+- Small problems in algorithms become big ones
+- Very often, quality of your input data is the real issue
+- Might be specific to Decision Trees:
+	- You can have multiple input columns in a VectorAssembler
+		- `assembler = Vector Assembler().setInputCols(["col1", "col2", ...])`
+		- `df = assembler.transform(data).select("labelColumnName", "features")`
+	- `.option("header", "true").toption("inferSchema", "true")`
